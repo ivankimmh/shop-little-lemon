@@ -15,7 +15,7 @@ from .serializers import (
     OrderSerializer,
     DeliveryCrewSerializer,
 )
-from .permissions import IsAdmin, IsManager, IsDeliveryCrew, IsCustomer
+from .permissions import IsManager, IsDeliveryCrew, IsCustomer
 from django.contrib.auth.hashers import make_password
 
 
@@ -112,20 +112,39 @@ class CurrentUserView(APIView):
 
 # Menu-items endpoints : /api/menu-items
 class MenuItemListView(APIView):
-    permission_classes = [IsCustomer | IsDeliveryCrew | IsManager | IsAdmin]
+    permission_classes = [IsCustomer | IsDeliveryCrew | IsManager]
 
-    def get(self, request, *args, **kwargs):
-        # Logic for listing all menu items
-        pass
+    def get(self, request: Request, *args, **kwargs):
+        if any(isinstance(request.user, role) for role in [IsCustomer, IsDeliveryCrew]):
+            itmes = MenuItem.objects.all()
+            serializer = MenuItemSerializer(itmes, many=True)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        elif isinstance(request.user, IsManager):
+            items = MenuItem.objects.all()
+            serializer = MenuItemSerializer(items, many=True)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        else:
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
 
-    def post(self, request, *args, **kwargs):
-        # Logic for creating new menu items
-        pass
+    def post(self, request: Request, *args, **kwargs):
+        if isinstance(request.user, IsManager):
+            serializer = MenuItemSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                data = {
+                    "Message": "Unauthorized access",
+                }
+                return Response(data=data, status=status.HTTP_403_FORBIDDEN)
 
 
 # /api/menu-items/{menuItem}
 class SingleMenuItemView(APIView):
-    permission_classes = [IsCustomer | IsDeliveryCrew | IsManager | IsAdmin]
+    permission_classes = [IsCustomer | IsDeliveryCrew | IsManager]
 
     def get(self, request, *args, **kwargs):
         # Logic for displaying a single menu item
@@ -142,7 +161,7 @@ class SingleMenuItemView(APIView):
 
 # User group management : /api/groups/manager/users
 class ManagerUsersView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [IsManager]
 
     def get(self, request, *args, **kwargs):
         # Logic for listing all managers
@@ -155,7 +174,7 @@ class ManagerUsersView(APIView):
 
 # /api/groups/manager/users/{userId}
 class SingleManagerUserView(APIView):
-    permission_classes = [IsAdmin]
+    permission_classes = [IsManager]
 
     def delete(self, request, *args, **kwargs):
         # Logic for deleting a single manager
