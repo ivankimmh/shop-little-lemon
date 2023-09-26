@@ -232,7 +232,7 @@ class ManagerUsersView(APIView):
 class SingleManagerUserView(APIView):
     permission_classes = [IsManager]
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request: Request, *args, **kwargs):
         if not isinstance(request.user, IsManager):
             data = {
                 "Message": "Unauthorized access",
@@ -259,22 +259,61 @@ class SingleManagerUserView(APIView):
 class DeliveryCrewUsersView(APIView):
     permission_classes = [IsManager]
 
-    def get(self, request, *args, **kwargs):
-        # Logic for listing all delivery crew members
-        pass
+    def get(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        delivery_crew_group = Group.objects.get(name="delivery_crew")
+        delivery_crews = delivery_crew_group.user_set.all()
+        delivery_crews_names = [user.username for user in delivery_crews]
+        data = {
+            "delivery_crews": delivery_crews_names,
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        # Logic for assigning a user to the delivery crew group
-        pass
+    def post(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        user_id = request.data.get("user_id")
+        user = get_object_or_404(User, id=user_id)
+        delivery_crew_group = Group.objects.get(name="delivery_crew")
+        delivery_crew_group.user_set.add(user)
+        data = {
+            "Message": "User added to the delivery_crew group",
+        }
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
 # /api/groups/delivery-crew/users/{userId}
 class SingleDeliveryCrewUserView(APIView):
     permission_classes = [IsManager]
 
-    def delete(self, request, *args, **kwargs):
-        # Logic for deleting a single delivery crew member
-        pass
+    def delete(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        user_id = kwargs.get("userId")
+        user = get_object_or_404(User, id=user_id)
+        delivery_crew_group = Group.objects.get(name="delivery_crew")
+
+        if user in delivery_crew_group.user_set.all():
+            delivery_crew_group.user_set.remove(user)
+            data = {
+                "Message": "User removed from the delivery_crew group",
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
+        else:
+            data = {
+                "Message": "User is not a delivery_crew",
+            }
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
 
 
 # Cart and Order management : /api/cart/menu-items
@@ -282,16 +321,49 @@ class CartMenuItemsView(APIView):
     permission_classes = [IsCustomer]
 
     def get(self, request, *args, **kwargs):
-        # Logic for listing current cart items
-        pass
+        if not isinstance(request.user, IsCustomer):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        cart_tiem = Cart.objects.filter(user=request.user)
+        serializer = CartSerializer(cart_tiem, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        # Logic for adding items to the cart
-        pass
+    def post(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsCustomer):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        menu_item_id = request.data.get("menu_item_id")
+        menu_item = get_object_or_404(MenuItem, id=menu_item_id)
 
-    def delete(self, request, *args, **kwargs):
-        # Logic for removing items from the cart
-        pass
+        existing_itme = Cart.objects.filter(user=request.user, menuitem=menu_item)
+
+        if existing_itme:
+            existing_itme.quantity += 1
+            existing_itme.save()
+        else:
+            Cart.objects.create(user=request.user, menuitem=menu_item, quantity=1)
+
+        data = {
+            "Message": "Menu Item added to the cart",
+        }
+        return Response(data=data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsCustomer):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        menu_item_id = request.data.get("menu_item_id")
+        Cart.objects.filter(user=request.user, menuitem_id=menu_item_id).delete()
+        data = {
+            "messsage": "Menu Item removed from the cart",
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 # /api/orders
