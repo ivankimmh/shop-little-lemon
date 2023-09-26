@@ -44,7 +44,6 @@ INSTALLED_APPS = [
 ## Created Apps
 INSTALLED_APPS += [
     "LittleLemonDRF",
-    "LittleLemonDRF.apps.LittleLemonDRFConfig",
 ]
 
 ## Third party Apps
