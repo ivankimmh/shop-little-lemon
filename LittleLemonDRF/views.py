@@ -198,13 +198,34 @@ class SingleMenuItemView(APIView):
 class ManagerUsersView(APIView):
     permission_classes = [IsManager]
 
-    def get(self, request, *args, **kwargs):
-        # Logic for listing all managers
-        pass
+    def get(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        manager_group = Group.objects.get(name="manager")
+        managers = manager_group.user_set.all()
+        managers_names = [user.username for user in managers]
+        data = {
+            "Managers": managers_names,
+        }
+        return Response(data=data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        # Logic for assigning a user to the manager group
-        pass
+    def post(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        user_id = request.data.get("user_id")
+        user = get_object_or_404(User, id=user_id)
+        manager_group = Group.objects.get(name="manager")
+        manager_group.user_set.add(user)
+        data = {
+            "Message": "User added to the manager group",
+        }
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
 # /api/groups/manager/users/{userId}
@@ -212,8 +233,26 @@ class SingleManagerUserView(APIView):
     permission_classes = [IsManager]
 
     def delete(self, request, *args, **kwargs):
-        # Logic for deleting a single manager
-        pass
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        user_id = kwargs.get("userId")
+        user = get_object_or_404(User, id=user_id)
+        manager_group = Group.objects.get(name="manager")
+
+        if user in manager_group.user_set.all():
+            manager_group.user_set.remove(user)
+            data = {
+                "Message": "User removed from the manager group",
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
+        else:
+            data = {
+                "Message": "User is not a manager",
+            }
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
 
 
 # /api/groups/delivery-crew/users
