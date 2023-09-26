@@ -17,6 +17,8 @@ from .serializers import (
 )
 from .permissions import IsManager, IsDeliveryCrew, IsCustomer
 from django.contrib.auth.hashers import make_password
+from django.shortcuts import get_object_or_404
+from django.http import Http404
 
 
 # User registration and token generation : /api/users
@@ -146,17 +148,50 @@ class MenuItemListView(APIView):
 class SingleMenuItemView(APIView):
     permission_classes = [IsCustomer | IsDeliveryCrew | IsManager]
 
-    def get(self, request, *args, **kwargs):
-        # Logic for displaying a single menu item
-        pass
+    def get_menu_item(self, kwargs):
+        menu_item_id = kwargs.get("menuItem")
+        return get_object_or_404(MenuItem, id=menu_item_id)
 
-    def put(self, request, *args, **kwargs):
-        # Logic for updating a single menu item
-        pass
+    def get(self, request: Request, *args, **kwargs):
+        menu_item = self.get_menu_item(kwargs)
+        serializer = MenuItemSerializer(menu_item)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request, *args, **kwargs):
-        # Logic for deleting a single menu item
-        pass
+    def put(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        menu_item = self.get_menu_item(kwargs)
+        serializer = MenuItemSerializer(menu_item, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        menu_item = self.get_menu_item(kwargs)
+        serializer = MenuItemSerializer(menu_item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        menu_itme = self.get_menu_item(kwargs)
+        menu_itme.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # User group management : /api/groups/manager/users
