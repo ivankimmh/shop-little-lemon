@@ -370,27 +370,108 @@ class CartMenuItemsView(APIView):
 class OrdersView(APIView):
     permission_classes = [IsCustomer | IsManager | IsDeliveryCrew]
 
-    def get(self, request, *args, **kwargs):
-        # Logic for listing orders
-        pass
+    def get(self, request: Request, *args, **kwargs):
+        if isinstance(request.user, IsCustomer):
+            orders = Order.objects.filter(user=request.user)
+        elif isinstance(request.user, IsManager):
+            orders = Order.objects.all()
+        elif isinstance(request.user, IsDeliveryCrew):
+            orders = Order.objects.filter(delivery_crew=request.user)
+        else:
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request, *args, **kwargs):
-        # Logic for creating new orders
-        pass
+    def post(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsCustomer):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        cart_item = Cart.objects.filter(user=request.user)
+        new_order = Order.objects.create(
+            user=request.user, delivery_crew=request.delivery_crew
+        )
+
+        for item in cart_item:
+            OrderItem.objects.create(
+                order=new_order,
+                menuitem=item.menuitem,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                price=item.unit_price * item.quantity,
+            )
+        cart_item.delete()
+
+        data = {
+            "Message": "Order created",
+        }
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
 # /api/orders/{orderId}
 class SingleOrderView(APIView):
     permission_classes = [IsCustomer | IsManager | IsDeliveryCrew]
 
-    def get(self, request, *args, **kwargs):
-        # Logic for displaying a single order
-        pass
+    def get(self, request: Request, *args, **kwargs):
+        order_id = kwargs.get("orderId")
+        order = get_object_or_404(Order, id=order_id)
 
-    def put(self, request, *args, **kwargs):
-        # Logic for updating a single order
-        pass
+        if request.user != order.user and not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        serializer = OrderSerializer(order.orderitem_set.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def delete(self, request, *args, **kwargs):
-        # Logic for deleting a single order
-        pass
+    def put(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsDeliveryCrew):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        try:
+            order_id = kwargs.get("orderId")
+            order = get_object_or_404(Order, id=order_id)
+
+            if not order.status:
+                order.status = True
+                order.save()
+                data = {
+                    "Message": "Order status updated",
+                }
+                return Response(data=data, status=status.HTTP_200_OK)
+            else:
+                data = {
+                    "Message": "Delivery is on the way",
+                }
+                return Response(data=data, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            data = {
+                "Message": "Order does not exist",
+            }
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request: Request, *args, **kwargs):
+        if not isinstance(request.user, IsManager):
+            data = {
+                "Message": "Unauthorized access",
+            }
+            return Response(data=data, status=status.HTTP_403_FORBIDDEN)
+        try:
+            order_id = kwargs.get("orderId")
+            order = get_object_or_404(Order, id=order_id)
+            order.delete()
+            data = {
+                "Message": "Order deleted",
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            data = {
+                "Message": "Order does not exist",
+            }
+            return Response(data=data, status=status.HTTP_404_NOT_FOUND)
