@@ -114,6 +114,7 @@ class CurrentUserView(APIView):
 
 # Menu-items endpoints : /api/menu-items
 class MenuItemListView(APIView):
+    print("/api/menu-items")
     permission_classes = [IsCustomer | IsDeliveryCrew | IsManager]
 
     def get(self, request: Request, *args, **kwargs):
