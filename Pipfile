@@ -10,6 +10,8 @@ djangorestframework-xml = "*"
 djoser = "*"
 pyjwt = "*"
 djangorestframework-simplejwt = "*"
+psycopg2-binary = "*"
+gunicorn = "*"
 
 [dev-packages]
 

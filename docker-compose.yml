@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  delivery_app:
+    container_name: little-app
+    depends_on:
+      - db
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command:
+      - "/start"
+    env_file:
+      - ./.envs/local/.db
+      - ./.envs/local/.django
+    ports:
+      - "8000:8000"
+
+  db:
+    container_name: little-db
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    env_file:
+      - .envs/local/.db
+    volumes:
+      - little_db:/var/lib/postgresql/data
+
+volumes:
+  little_db:

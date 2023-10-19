@@ -1,4 +1,5 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -20,4 +21,6 @@ urlpatterns = [
             {"get": "list", "post": "create", "delete": "destroy"}
         ),
     ),
+    path("admin/", admin.site.urls),
+    path("home/", include("myapp.urls")),
 ]
