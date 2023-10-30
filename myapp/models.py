@@ -17,3 +17,10 @@ class Teacher(models.Model):
     subjectcode = models.ForeignKey(Subject, on_delete=models.CASCADE)
     Qualification = models.CharField(max_length=50)
     email = models.EmailField(max_length=50)
+
+
+# Menu model
+class Menu(models.Model):
+    item_name = models.CharField(max_length=200)
+    category = models.CharField(max_length=200)
+    description = models.CharField(max_length=1000)

@@ -6,4 +6,5 @@ urlpatterns = [
     path("api/", include("LittleLemonDRF.urls")),
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.authtoken")),
+    path("", include("myapp.urls")),
 ]
