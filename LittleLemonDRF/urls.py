@@ -21,6 +21,6 @@ urlpatterns = [
             {"get": "list", "post": "create", "delete": "destroy"}
         ),
     ),
-    path("admin/", admin.site.urls),
+    # path("admin/", admin.site.urls),
     path("home/", include("myapp.urls")),
 ]

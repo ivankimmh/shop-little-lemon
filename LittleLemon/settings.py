@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -45,6 +44,7 @@ INSTALLED_APPS = [
 INSTALLED_APPS += [
     "LittleLemonDRF",
     "myapp",
+    "restaurant",
 ]
 
 ## Third party Apps
@@ -136,7 +136,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+# STATIC_URL = "restaurant/static/"
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+    # os.path.join(BASE_DIR, "restaurant/static"),
+]
+# STATICFILES_DIRS = [
+#     BASE_DIR / "static",
+#     BASE_DIR / "restaurant/static",  # 기존 앱의 static 경로
+# ]
+
 STATIC_ROOT = "/var/www/html/static"
 
 # Default primary key field type
