@@ -4,7 +4,7 @@ from django.utils import timezone
 
 
 class Category(models.Model):
-    slug = models.SlugField()
+    slug = models.SlugField(max_length=140, default="DEFAULT VALUE")
     title = models.CharField(max_length=255, db_index=True)
 
 

@@ -135,18 +135,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
-# STATIC_URL = "restaurant/static/"
+STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-    # os.path.join(BASE_DIR, "restaurant/static"),
-]
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-#     BASE_DIR / "restaurant/static",  # 기존 앱의 static 경로
-# ]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
+
+# 정적 파일을 복사해서 컨테이너에서 어떤 경로에 저장을 하는지
 STATIC_ROOT = "/var/www/html/static"
 
 # Default primary key field type
