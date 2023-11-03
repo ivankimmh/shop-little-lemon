@@ -11,14 +11,14 @@
       <div class="column">
           {% csrf_token %}
           <form method="POST" id="form">
-            {% csrf_token %}
             <p>
               <label for="first_name">Name:</label>
               <input type="text" placeholder="Your Name" maxlength="200" required="" id="first_name">
             </p>
             <p>
-            <!-- Step 9: Part one -->
-            {{ reservation_date }}
+              <!-- Step 9: Part one -->
+              <label for="reservation_date" >Reservation date:</label>
+              <input type="date" id="reservation_date" name="reservation_date" required>
             </p>
       
             <p>

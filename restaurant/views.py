@@ -1,13 +1,13 @@
-import json
-from datetime import datetime
-
+# from django.http import HttpResponse
 from django.shortcuts import render
-from django.core import serializers
-from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
 from .forms import BookingForm
 from .models import Menu
+from django.core import serializers
 from .models import Booking
+from datetime import datetime
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 
 
 # Create your views here.
@@ -36,6 +36,7 @@ def book(request):
     return render(request, "book.html", context)
 
 
+# Add your code here to create new views
 def menu(request):
     menu_data = Menu.objects.all()
     main_data = {"menu": menu_data}
