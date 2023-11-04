@@ -1,5 +1,12 @@
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
+from rest_framework import viewsets
+from rest_framework import status
+from rest_framework.decorators import permission_classes
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import Group, User
 from .models import Category, MenuItem, Cart, Order, OrderItem
 from .serializers import (
     CategorySerializer,
@@ -8,15 +15,12 @@ from .serializers import (
     OrderSerializer,
     UserSerilializer,
 )
-from rest_framework.response import Response
 
-from rest_framework.permissions import IsAdminUser
-from django.shortcuts import get_object_or_404
 
-from django.contrib.auth.models import Group, User
-
-from rest_framework import viewsets
-from rest_framework import status
+class MenuItemsView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = MenuItem.objects.all()
+    serializer_class = MenuItemSerializer
 
 
 class CategoriesView(generics.ListCreateAPIView):
