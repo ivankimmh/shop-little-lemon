@@ -6,7 +6,6 @@ from LittleLemonDRF import views
 router = DefaultRouter()
 router.register(r"bookings", views.BookingViewSet)
 router.register(r"menu", views.MenuViewSet)
+router.register(r"auth", views.SignUpView, basename="auth")
 
-urlpatterns = [
-    path("signup/", views.SignUpView.as_view(), name="signup"),
-] + router.urls
+urlpatterns = router.urls
