@@ -18,7 +18,6 @@ from drf_spectacular.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("LittleLemonDRF.urls")),
-    path("auth/", include("djoser.urls")),
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
@@ -33,9 +32,6 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="doc",
     ),
-    # path("auth-token/", include("djoser.urls.authtoken")),
-    # path("myapp/", include("myapp.urls")),
-    # path("restaurant/", include("restaurant.urls")),
 ] + static(
     settings.STATIC_URL, document_root=settings.STATIC_ROOT
 )  # static files
