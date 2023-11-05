@@ -12,6 +12,7 @@ pyjwt = "*"
 djangorestframework-simplejwt = "*"
 psycopg2-binary = "*"
 gunicorn = "*"
+drf-spectacular = "*"
 
 [dev-packages]
 

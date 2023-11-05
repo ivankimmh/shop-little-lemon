@@ -1,30 +1,55 @@
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, views, status, generics, permissions
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
-from rest_framework import viewsets
-from rest_framework import status
 from rest_framework.decorators import permission_classes
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import Group, User
 
 # from LittleLemonDRF.models import Category, MenuItem, Cart, Order, OrderItem
-from LittleLemonDRF.models import MenuItem
+from LittleLemonDRF.models import MenuItem, Booking
 
 from LittleLemonDRF.serializers import (
     # CategorySerializer,
     MenuItemSerializer,
+    UserSerializer,
     # CartSerializer,
     # OrderSerializer,
-    UserSerilializer,
+    # UserSerilializer,
+    BookingSerializer,
 )
+
+
+class SignUpView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MenuItemsView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
+
+
+class BookingViewSet(viewsets.ModelViewSet):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Ensure users can only see their own bookings
+        return self.queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Automatically set the user to the current user on create
+        serializer.save(user=self.request.user)
 
 
 # class CategoriesView(generics.ListCreateAPIView):

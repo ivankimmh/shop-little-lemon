@@ -1,12 +1,16 @@
-from django.contrib import admin
 from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token
 
-from . import views
+from rest_framework.routers import DefaultRouter
+from LittleLemonDRF import views
+
+# from rest_framework.authtoken.views import obtain_auth_token
+router = DefaultRouter()
+router.register(r"bookings", views.BookingViewSet)
 
 urlpatterns = [
-    path("api-token-auth/", obtain_auth_token),
     path("menu-items", views.MenuItemsView.as_view()),
+    path("signup/", views.SignUpView.as_view(), name="signup"),
+    # path("api-token-auth/", obtain_auth_token),
     # path("categories", views.CategoriesView.as_view()),
     # path("menu-items/<int:pk>", views.SingleMenuItemView.as_view()),
     # path("cart/menu-items", views.CartView.as_view()),
@@ -24,4 +28,4 @@ urlpatterns = [
     #         {"get": "list", "post": "create", "delete": "destroy"}
     #     ),
     # ),
-]
+] + router.urls

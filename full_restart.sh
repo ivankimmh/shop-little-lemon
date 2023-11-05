@@ -10,4 +10,5 @@ echo "docker docker volume cleared"
 
 docker-compose up --build -d
 
+echo "Running tests..."
 docker exec -it little-app python manage.py test
